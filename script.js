@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const folderData = await folderRes.json();
 
             // Paso 2: Confirmando carpeta de destino
-            statusDisplay.textContent = `📂 Guardando en carpeta: ${folderName}`;
+            statusDisplay.textContent = `📂 Guardando en carpeta: Organizador/${folderName}`;
 
             const metadata = { name: file.name, parents: [subjectId] };
             const formData = new FormData();
