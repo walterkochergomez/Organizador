@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-// --- 🔥 CONFIGURACIÓN DE FIREBASE (Reemplaza con tus datos) 🔥 ---
+// --- 🔥 CONFIGURACIÓN DE FIREBASE 🔥 ---
 const firebaseConfig = {
   apiKey: "AIzaSyAjWtEeVUDQFrPYGXRpRxK9J_Gf4M77lyw",
   authDomain: "organizador-academico-35d9d.firebaseapp.com",
@@ -17,7 +17,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Solo pedimos permiso para Google Drive
+// Permiso para Google Drive
 provider.addScope('https://www.googleapis.com/auth/drive.file');
 
 const tasksRef = collection(db, "academicTasks");
@@ -90,6 +90,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const masterId = await getOrCreateFolder("Organizador", "root");
             const subjectId = await getOrCreateFolder(folderName, masterId);
+            
+            // Obtener link de la carpeta de la asignatura
+            const folderRes = await fetch(`https://www.googleapis.com/drive/v3/files/${subjectId}?fields=webViewLink`, {
+                headers: { 'Authorization': 'Bearer ' + accessToken }
+            });
+            const folderData = await folderRes.json();
+
             const metadata = { name: file.name, parents: [subjectId] };
             const formData = new FormData();
             formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
@@ -97,8 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
                 method: 'POST', headers: { 'Authorization': 'Bearer ' + accessToken }, body: formData
             });
-            const data = await res.json();
-            return data.webViewLink;
+            const fileData = await res.json();
+            
+            return { fileLink: fileData.webViewLink, folderLink: folderData.webViewLink };
         } catch (e) { return null; }
     }
 
@@ -136,13 +144,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = document.getElementById('task-date').value;
         
         submitBtn.disabled = true;
-        let materialUrl = "";
+        let driveData = null;
 
         if (fileInput.files.length > 0) {
-            materialUrl = await uploadToDrive(fileInput.files[0], subject);
+            driveData = await uploadToDrive(fileInput.files[0], subject);
         }
 
-        const taskData = { name, subject, date, material: materialUrl || "", userId: currentUser.uid, completed: false };
+        const taskData = { 
+            name, subject, date, 
+            fileMaterial: driveData ? driveData.fileLink : "",
+            folderMaterial: driveData ? driveData.folderLink : "", 
+            userId: currentUser.uid, 
+            completed: false 
+        };
 
         try {
             if (editingId) {
@@ -163,30 +177,23 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDashboard();
     });
 
-    // FUNCIÓN DE EXPORTAR MEJORADA
     btnExport.addEventListener('click', () => {
         if (tasks.length === 0) return alert("No hay tareas para exportar.");
+        const headers = ["Tarea", "Asignatura", "Fecha Limite", "Estado", "Link Carpeta Drive"];
+        const rows = tasks.map(t => [
+            t.name.replace(/,/g,""), 
+            t.subject.replace(/,/g,""), 
+            t.date, 
+            t.completed ? "Completada" : "Pendiente", 
+            t.folderMaterial || "Sin carpeta"
+        ].join(","));
         
-        const headers = ["Tarea", "Asignatura", "Fecha Limite", "Estado", "Link Material"];
-        const rows = tasks.map(t => {
-            const estado = t.completed ? "Completada" : "Pendiente";
-            // Limpiar comas para no romper columnas CSV
-            const cleanName = t.name.replace(/,/g, "");
-            const cleanSubject = t.subject.replace(/,/g, "");
-            return [cleanName, cleanSubject, t.date, estado, t.material || "Sin material"].join(",");
-        });
-
-        // El prefijo \ufeff asegura que Excel reconozca tildes y eñes
-        const csvContent = "\ufeff" + headers.join(",") + "\n" + rows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        
+        const csv = "\ufeff" + headers.join(",") + "\n" + rows.join("\n");
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        link.href = url;
-        link.download = `Organizador_Academico_${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(link);
+        link.href = URL.createObjectURL(blob);
+        link.download = `Plan_Academico_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
-        document.body.removeChild(link);
     });
 
     // --- RENDERIZADO ---
@@ -194,9 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const subjects = [...new Set(tasks.map(t => t.subject))];
         const current = filterSubject.value;
         filterSubject.innerHTML = '<option value="all">Todas las asignaturas</option>';
-        const dl = document.getElementById('subject-list'); 
-        if(dl) dl.innerHTML = '';
-        
+        const dl = document.getElementById('subject-list'); if(dl) dl.innerHTML = '';
         subjects.sort().forEach(s => {
             filterSubject.appendChild(new Option(s, s));
             if(dl) dl.appendChild(new Option(s, s));
@@ -214,10 +219,12 @@ document.addEventListener('DOMContentLoaded', () => {
         filtered.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
             const li = document.createElement('li');
             li.className = `task-item ${t.completed ? 'completed' : ''}`;
+            // En la lista visual mostramos el link al archivo si existe, sino a la carpeta
+            const link = t.fileMaterial ? t.fileMaterial : (t.folderMaterial || null);
             li.innerHTML = `
                 <div class="task-info">
                     <strong>${t.name}</strong><span>📚 ${t.subject} | 📅 ${t.date}</span>
-                    <div class="task-material">${t.material ? `📎 <a href="${t.material}" target="_blank">Ver en Drive</a>` : 'Sin material'}</div>
+                    <div class="task-material">${link ? `📎 <a href="${link}" target="_blank">Ver Material</a>` : 'Sin material'}</div>
                 </div>
                 <div class="task-actions">
                     <button class="btn-action" onclick="toggleComplete('${t.id}')">✔️</button>
@@ -228,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- GLOBALES ---
+    // --- FUNCIONES GLOBALES ---
     window.toggleComplete = async (id) => {
         const t = tasks.find(x => x.id === id);
         await updateDoc(doc(db, "academicTasks", id), { completed: !t.completed });
