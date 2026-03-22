@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-// --- 🔥 CONFIGURACIÓN DE FIREBASE 🔥 ---
+// --- 🔥 CONFIGURACIÓN DE FIREBASE (Reemplaza con tus datos) 🔥 ---
 const firebaseConfig = {
   apiKey: "AIzaSyAjWtEeVUDQFrPYGXRpRxK9J_Gf4M77lyw",
   authDomain: "organizador-academico-35d9d.firebaseapp.com",
@@ -12,22 +12,21 @@ const firebaseConfig = {
   appId: "1:191522787552:web:db08851e1d472ebb628085"
 };
 
-// Inicialización de Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Permiso para que la App gestione sus propios archivos en Drive
+// Solo pedimos permiso para Google Drive
 provider.addScope('https://www.googleapis.com/auth/drive.file');
 
 const tasksRef = collection(db, "academicTasks");
 let currentUser = null; 
-let accessToken = localStorage.getItem('googleDriveToken'); // Recuperar token si existe
+let accessToken = localStorage.getItem('googleDriveToken');
 let unsubscribeSnapshot = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Referencias del DOM
+    // Referencias DOM
     const taskForm = document.getElementById('task-form');
     const taskList = document.getElementById('task-list');
     const filterSubject = document.getElementById('filter-subject');
@@ -35,9 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
     const themeToggle = document.getElementById('theme-toggle');
     const btnExport = document.getElementById('btn-export');
-    const loginOverlay = document.getElementById('login-overlay');
     const btnLogin = document.getElementById('btn-login');
     const btnLogout = document.getElementById('btn-logout');
+    const loginOverlay = document.getElementById('login-overlay');
     const userNameDisplay = document.getElementById('user-name-display');
     const statusDisplay = document.getElementById('upload-status');
     const monthYearDisplay = document.getElementById('month-year');
@@ -52,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initTheme();
 
-    // --- MANEJO DE AUTENTICACIÓN ---
+    // --- AUTENTICACIÓN ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
@@ -62,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             currentUser = null;
             loginOverlay.classList.remove('hidden');
-            userNameDisplay.textContent = "Organizador Académico";
             tasks = [];
             updateDashboard();
             if (unsubscribeSnapshot) unsubscribeSnapshot();
@@ -78,50 +76,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const credential = GoogleAuthProvider.credentialFromResult(result);
             accessToken = credential.accessToken; 
             localStorage.setItem('googleDriveToken', accessToken);
-            console.log("Token de Drive obtenido");
         } catch (error) {
-            console.error("Error Login:", error);
-            alert("Error al iniciar sesión. Revisa los permisos.");
+            alert("Error al iniciar sesión.");
             btnLogin.textContent = 'Ingresar con Google';
         }
     });
 
     btnLogout.addEventListener('click', () => { signOut(auth); });
 
-    // --- LÓGICA DE GOOGLE DRIVE (CARPETAS ANIDADAS) ---
+    // --- LÓGICA DE GOOGLE DRIVE ---
     async function uploadToDrive(file, folderName) {
-        if (!accessToken) {
-            alert("⚠️ Sesión de Drive expirada. Por favor, cierra sesión y vuelve a entrar.");
-            return null;
-        }
-        statusDisplay.textContent = "⏳ Organizando carpetas en Drive...";
-        statusDisplay.className = "uploading";
-
+        if (!accessToken) return null;
         try {
             const masterId = await getOrCreateFolder("Organizador", "root");
             const subjectId = await getOrCreateFolder(folderName, masterId);
-
-            statusDisplay.textContent = `🚀 Subiendo "${file.name}"...`;
-
             const metadata = { name: file.name, parents: [subjectId] };
             const formData = new FormData();
             formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             formData.append('file', file);
-
-            const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
-                method: 'POST',
-                headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-                body: formData
+            const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+                method: 'POST', headers: { 'Authorization': 'Bearer ' + accessToken }, body: formData
             });
-
-            const data = await response.json();
-            statusDisplay.textContent = "✅ Guardado en Organizador/" + folderName;
+            const data = await res.json();
             return data.webViewLink;
-        } catch (error) {
-            console.error("Drive Error:", error);
-            statusDisplay.textContent = "❌ Error en Drive.";
-            return null;
-        }
+        } catch (e) { return null; }
     }
 
     async function getOrCreateFolder(name, parentId) {
@@ -130,19 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'Authorization': 'Bearer ' + accessToken }
         });
         const data = await res.json();
-
         if (data.files && data.files.length > 0) return data.files[0].id;
-
-        const createRes = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
+        const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+            method: 'POST', headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
         });
         const folder = await createRes.json();
         return folder.id;
     }
 
-    // --- MANEJO DE DATOS (FIREBASE) ---
+    // --- FIREBASE CRUD ---
     function loadUserTasks() {
         if (!currentUser) return;
         const q = query(tasksRef, where("userId", "==", currentUser.uid));
@@ -157,23 +132,17 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const fileInput = document.getElementById('task-file');
         const subject = document.getElementById('task-subject').value;
-        let materialUrl = "";
-
+        const name = document.getElementById('task-name').value;
+        const date = document.getElementById('task-date').value;
+        
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Procesando...';
+        let materialUrl = "";
 
         if (fileInput.files.length > 0) {
             materialUrl = await uploadToDrive(fileInput.files[0], subject);
         }
 
-        const taskData = {
-            name: document.getElementById('task-name').value,
-            subject: subject,
-            date: document.getElementById('task-date').value,
-            material: materialUrl || "",
-            userId: currentUser.uid,
-            completed: false
-        };
+        const taskData = { name, subject, date, material: materialUrl || "", userId: currentUser.uid, completed: false };
 
         try {
             if (editingId) {
@@ -183,46 +152,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 await addDoc(tasksRef, taskData);
             }
             taskForm.reset();
-            statusDisplay.textContent = "";
-        } catch (err) { alert("Error al guardar."); }
-        
+        } catch (err) { console.error(err); }
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Guardar Tarea';
     });
 
-    // --- INTERFAZ Y FILTROS ---
+    // --- FILTROS Y EXPORTAR ---
     filterSubject.addEventListener('change', () => {
-        selectedDateFilter = null; 
-        const badge = document.getElementById('active-date-filter');
-        if(badge) badge.classList.add('hidden');
+        selectedDateFilter = null;
         updateDashboard();
     });
 
-    function updateDashboard() {
-        updateFilterOptions();
-        renderTasks();
-        renderCalendar();
-    }
-
-    function updateFilterOptions() {
-        const subjects = [...new Set(tasks.map(t => t.subject))];
-        const dataList = document.getElementById('subject-list');
-        const currentFilter = filterSubject.value;
+    // FUNCIÓN DE EXPORTAR MEJORADA
+    btnExport.addEventListener('click', () => {
+        if (tasks.length === 0) return alert("No hay tareas para exportar.");
         
+        const headers = ["Tarea", "Asignatura", "Fecha Limite", "Estado", "Link Material"];
+        const rows = tasks.map(t => {
+            const estado = t.completed ? "Completada" : "Pendiente";
+            // Limpiar comas para no romper columnas CSV
+            const cleanName = t.name.replace(/,/g, "");
+            const cleanSubject = t.subject.replace(/,/g, "");
+            return [cleanName, cleanSubject, t.date, estado, t.material || "Sin material"].join(",");
+        });
+
+        // El prefijo \ufeff asegura que Excel reconozca tildes y eñes
+        const csvContent = "\ufeff" + headers.join(",") + "\n" + rows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Organizador_Academico_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // --- RENDERIZADO ---
+    function updateDashboard() {
+        const subjects = [...new Set(tasks.map(t => t.subject))];
+        const current = filterSubject.value;
         filterSubject.innerHTML = '<option value="all">Todas las asignaturas</option>';
-        dataList.innerHTML = '';
+        const dl = document.getElementById('subject-list'); 
+        if(dl) dl.innerHTML = '';
         
         subjects.sort().forEach(s => {
             filterSubject.appendChild(new Option(s, s));
-            dataList.appendChild(new Option(s, s));
+            if(dl) dl.appendChild(new Option(s, s));
         });
-        
-        if (subjects.includes(currentFilter)) filterSubject.value = currentFilter;
-
-        const btnDel = document.getElementById('btn-delete-subject');
-        if (btnDel) {
-            filterSubject.value !== 'all' ? btnDel.classList.remove('hidden') : btnDel.classList.add('hidden');
-        }
+        filterSubject.value = subjects.includes(current) ? current : 'all';
+        renderTasks();
+        renderCalendar();
     }
 
     function renderTasks() {
@@ -230,58 +211,39 @@ document.addEventListener('DOMContentLoaded', () => {
         let filtered = filterSubject.value === 'all' ? tasks : tasks.filter(t => t.subject === filterSubject.value);
         if (selectedDateFilter) filtered = filtered.filter(t => t.date === selectedDateFilter);
         
-        filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
-
-        if (filtered.length === 0) {
-            taskList.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:2rem;">No hay tareas.</p>';
-            return;
-        }
-
-        filtered.forEach(task => {
+        filtered.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
             const li = document.createElement('li');
-            li.className = `task-item ${task.completed ? 'completed' : ''}`;
-            const material = task.material ? `📎 <a href="${task.material}" target="_blank">Ver en Drive</a>` : 'Sin material';
-            
+            li.className = `task-item ${t.completed ? 'completed' : ''}`;
             li.innerHTML = `
                 <div class="task-info">
-                    <strong>${task.name}</strong>
-                    <span>📚 ${task.subject} | 📅 ${task.date}</span>
-                    <div class="task-material">${material}</div>
+                    <strong>${t.name}</strong><span>📚 ${t.subject} | 📅 ${t.date}</span>
+                    <div class="task-material">${t.material ? `📎 <a href="${t.material}" target="_blank">Ver en Drive</a>` : 'Sin material'}</div>
                 </div>
                 <div class="task-actions">
-                    <button class="btn-action btn-complete" onclick="toggleComplete('${task.id}')">✔️</button>
-                    <button class="btn-action btn-edit" onclick="editTask('${task.id}')">✏️</button>
-                    <button class="btn-action btn-delete" onclick="deleteTask('${task.id}')">🗑️</button>
+                    <button class="btn-action" onclick="toggleComplete('${t.id}')">✔️</button>
+                    <button class="btn-action" onclick="editTask('${t.id}')">✏️</button>
+                    <button class="btn-action" onclick="deleteTask('${t.id}')">🗑️</button>
                 </div>`;
             taskList.appendChild(li);
         });
     }
 
-    // --- FUNCIONES GLOBALES ---
+    // --- GLOBALES ---
     window.toggleComplete = async (id) => {
-        const t = tasks.find(task => task.id === id);
+        const t = tasks.find(x => x.id === id);
         await updateDoc(doc(db, "academicTasks", id), { completed: !t.completed });
     };
-
-    window.deleteTask = async (id) => {
-        if(confirm("¿Eliminar tarea?")) await deleteDoc(doc(db, "academicTasks", id));
-    };
-
+    window.deleteTask = async (id) => { if(confirm("¿Eliminar tarea?")) await deleteDoc(doc(db, "academicTasks", id)); };
     window.editTask = (id) => {
-        const t = tasks.find(task => task.id === id);
+        const t = tasks.find(x => x.id === id);
         document.getElementById('task-name').value = t.name;
         document.getElementById('task-subject').value = t.subject;
         document.getElementById('task-date').value = t.date;
         editingId = id;
-        submitBtn.textContent = 'Actualizar Tarea';
+        submitBtn.innerHTML = 'Actualizar Tarea';
         cancelEditBtn.classList.remove('hidden');
     };
-
-    function exitEditMode() {
-        editingId = null;
-        submitBtn.textContent = 'Guardar Tarea';
-        cancelEditBtn.classList.add('hidden');
-    }
+    function exitEditMode() { editingId = null; submitBtn.innerHTML = 'Guardar Tarea'; cancelEditBtn.classList.add('hidden'); }
 
     // --- CALENDARIO ---
     function renderCalendar() {
@@ -290,36 +252,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const offset = first === 0 ? 6 : first - 1;
         const days = new Date(currentYear, currentMonth + 1, 0).getDate();
         const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        
         monthYearDisplay.textContent = `${months[currentMonth]} ${currentYear}`;
         for (let i = 0; i < offset; i++) calendarDays.appendChild(document.createElement('div')).className = 'calendar-day empty';
-
         for (let i = 1; i <= days; i++) {
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'calendar-day';
-            dayDiv.textContent = i;
-            const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-            
-            if (dateStr === new Date().toISOString().split('T')[0]) dayDiv.classList.add('today');
-            if (selectedDateFilter === dateStr) dayDiv.classList.add('selected');
-
-            dayDiv.onclick = () => {
-                selectedDateFilter = selectedDateFilter === dateStr ? null : dateStr;
-                updateDashboard();
-            };
-
-            const dayTasks = tasks.filter(t => t.date === dateStr);
-            if (dayTasks.length > 0) {
-                const m = document.createElement('div');
-                m.className = 'markers-container';
-                dayTasks.slice(0,3).forEach(t => {
-                    const dot = document.createElement('div');
-                    dot.className = `task-marker ${t.completed ? 'done' : ''}`;
-                    m.appendChild(dot);
-                });
-                dayDiv.appendChild(m);
+            const d = document.createElement('div'); d.className = 'calendar-day'; d.textContent = i;
+            const ds = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            if (ds === new Date().toISOString().split('T')[0]) d.classList.add('today');
+            if (selectedDateFilter === ds) d.classList.add('selected');
+            d.onclick = () => { selectedDateFilter = selectedDateFilter === ds ? null : ds; updateDashboard(); };
+            const dt = tasks.filter(t => t.date === ds);
+            if (dt.length > 0) {
+                const m = document.createElement('div'); m.className = 'markers-container';
+                dt.slice(0,3).forEach(t => { const dot = document.createElement('div'); dot.className = `task-marker ${t.completed ? 'done' : ''}`; m.appendChild(dot); });
+                d.appendChild(m);
             }
-            calendarDays.appendChild(dayDiv);
+            calendarDays.appendChild(d);
         }
     }
 
