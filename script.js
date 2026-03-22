@@ -2,9 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-// --- 🔥 CONFIGURACIÓN DE FIREBASE 🔥 ---
+// --- 🔥 CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
-  apiKey: "AIzaSyAjWtEeVUDQFrPYGXRpRxK9J_Gf4M77lyw",
+    apiKey: "AIzaSyAjWtEeVUDQFrPYGXRpRxK9J_Gf4M77lyw",
   authDomain: "organizador-academico-35d9d.firebaseapp.com",
   projectId: "organizador-academico-35d9d",
   storageBucket: "organizador-academico-35d9d.firebasestorage.app",
@@ -16,8 +16,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-
-// Permiso para Google Drive
 provider.addScope('https://www.googleapis.com/auth/drive.file');
 
 const tasksRef = collection(db, "academicTasks");
@@ -84,10 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnLogout.addEventListener('click', () => { signOut(auth); });
 
-    // --- LÓGICA DE GOOGLE DRIVE ---
+    // --- LÓGICA DE GOOGLE DRIVE (MENSAJES DINÁMICOS RESTAURADOS) ---
     async function uploadToDrive(file, folderName) {
         if (!accessToken) return null;
         try {
+            // Paso 1: Subiendo archivo específico
+            statusDisplay.textContent = `☁️ Subiendo "${file.name}"...`;
+            statusDisplay.classList.remove('hidden');
+
             const masterId = await getOrCreateFolder("Organizador", "root");
             const subjectId = await getOrCreateFolder(folderName, masterId);
             
@@ -97,17 +99,27 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const folderData = await folderRes.json();
 
+            // Paso 2: Confirmando carpeta de destino
+            statusDisplay.textContent = `📂 Guardando en carpeta: ${folderName}`;
+
             const metadata = { name: file.name, parents: [subjectId] };
             const formData = new FormData();
             formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             formData.append('file', file);
+
             const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
                 method: 'POST', headers: { 'Authorization': 'Bearer ' + accessToken }, body: formData
             });
             const fileData = await res.json();
             
+            // Paso 3: Éxito final
+            statusDisplay.textContent = `✅ ¡Archivo guardado con éxito!`;
+            
             return { fileLink: fileData.webViewLink, folderLink: folderData.webViewLink };
-        } catch (e) { return null; }
+        } catch (e) { 
+            statusDisplay.textContent = `❌ Error al subir a Drive`;
+            return null; 
+        }
     }
 
     async function getOrCreateFolder(name, parentId) {
@@ -144,6 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = document.getElementById('task-date').value;
         
         submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Procesando...';
+        
         let driveData = null;
 
         if (fileInput.files.length > 0) {
@@ -167,8 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             taskForm.reset();
         } catch (err) { console.error(err); }
+        
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Guardar Tarea';
+        
+        // Ocultar mensaje de estado después de 3 segundos
+        setTimeout(() => { statusDisplay.classList.add('hidden'); }, 3000);
     });
 
     // --- FILTROS Y EXPORTAR ---
@@ -196,12 +214,13 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     });
 
-    // --- RENDERIZADO ---
+    // --- RENDERIZADO Y DASHBOARD ---
     function updateDashboard() {
         const subjects = [...new Set(tasks.map(t => t.subject))];
         const current = filterSubject.value;
         filterSubject.innerHTML = '<option value="all">Todas las asignaturas</option>';
         const dl = document.getElementById('subject-list'); if(dl) dl.innerHTML = '';
+        
         subjects.sort().forEach(s => {
             filterSubject.appendChild(new Option(s, s));
             if(dl) dl.appendChild(new Option(s, s));
@@ -219,8 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filtered.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
             const li = document.createElement('li');
             li.className = `task-item ${t.completed ? 'completed' : ''}`;
-            // En la lista visual mostramos el link al archivo si existe, sino a la carpeta
-            const link = t.fileMaterial ? t.fileMaterial : (t.folderMaterial || null);
+            const link = t.fileMaterial || t.folderMaterial;
             li.innerHTML = `
                 <div class="task-info">
                     <strong>${t.name}</strong><span>📚 ${t.subject} | 📅 ${t.date}</span>
@@ -240,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const t = tasks.find(x => x.id === id);
         await updateDoc(doc(db, "academicTasks", id), { completed: !t.completed });
     };
-    window.deleteTask = async (id) => { if(confirm("¿Eliminar tarea?")) await deleteDoc(doc(db, "academicTasks", id)); };
+    window.deleteTask = async (id) => { if(confirm("¿Eliminar esta tarea?")) await deleteDoc(doc(db, "academicTasks", id)); };
     window.editTask = (id) => {
         const t = tasks.find(x => x.id === id);
         document.getElementById('task-name').value = t.name;
