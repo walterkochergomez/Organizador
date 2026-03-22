@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Académico | Notion Style</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <span class="logo" style="font-size: 3rem;">🎓</span>
+            <h2>Mi Semestre Académico</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Inicia sesión para gestionar tus actividades de forma privada.</p>
+            <button id="btn-login" class="btn-primary" style="font-size: 1rem; padding: 1rem;">
+                Ingresar con Google
+            </button>
+        </div>
+    </div>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="logo">🎓</span>
+                <div class="titles">
+                    <h1>Mi Semestre Académico</h1>
+                    <span class="sub-logo" id="user-name-display">Cargando...</span>
+                </div>
+            </div>
+
+            <section class="add-task-section">
+                <h3>Nueva Actividad</h3>
+                <form id="task-form">
+                    <div class="input-group">
+                        <label>Descripción</label>
+                        <input type="text" id="task-name" placeholder="Ej: Certamen de Termodinámica..." required>
+                    </div>
+                    <div class="input-group">
+                        <label>Asignatura</label>
+                        <input type="text" id="task-subject" list="subject-list" placeholder="Selecciona o escribe nueva..." autocomplete="off" required>
+                        <datalist id="subject-list">
+                            </datalist>
+                    </div>
+                    <div class="input-group">
+                        <label>Fecha Límite</label>
+                        <input type="date" id="task-date" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Material de Estudio</label>
+                            <input type="file" id="task-file" style="padding: 5px; border: none;">
+                            <small id="upload-status" style="display:block; font-size: 0.75rem; color: var(--primary); margin-top: 5px;"></small>
+                            <input type="hidden" id="task-material">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="submit-btn" class="btn-primary">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            Guardar Tarea
+                        </button>
+                        <button type="button" id="cancel-edit-btn" class="btn-secondary hidden">Cancelar Edición</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="settings-section">
+                <button id="theme-toggle" class="btn-sidebar">🌙 Modo Oscuro</button>
+                <button id="btn-logout" class="btn-sidebar" style="color: var(--danger); margin-top: 10px;">🚪 Cerrar Sesión</button>
+            </section>
+
+            <section class="tools-section">
+                <h3>Herramientas de Estudio</h3>
+                <div class="tools-grid">
+                    <a href="https://notebooklm.google.com/" target="_blank" class="btn-tool btn-notebooklm">
+                        📓 NotebookLM
+                    </a>
+                    <a href="https://gemini.google.com/" target="_blank" class="btn-tool btn-gemini">
+                        ✨ Gemini
+                    </a>
+                    <a href="https://aistudio.google.com/u/0/prompts/new_chat" target="_blank" class="btn-tool btn-aistudio">
+                        🛠️ AI Studio
+                    </a>
+                </div>
+            </section>
+        </aside>
+
+        <main class="main-content">
+            <section class="card calendar-card">
+                <div class="calendar-header-wrapper">
+                    <h2>Calendario Profesional</h2>
+                    <div class="calendar-controls">
+                        <button id="prev-month" class="btn-icon">◀</button>
+                        <h3 id="month-year">Mes Año</h3>
+                        <button id="next-month" class="btn-icon">▶</button>
+                    </div>
+                </div>
+                <div class="calendar-wrapper">
+                    <div class="calendar-grid-labels">
+                        <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                    </div>
+                    <div id="calendar-days" class="calendar-days">
+                        </div>
+                </div>
+            </section>
+
+            <section class="card tasks-card">
+                <div class="list-header">
+                    <h2>Mis Tareas</h2>
+                    <div class="filters-row">
+                        <div class="filter-subject-group">
+                            <label>Filtro:</label>
+                            <select id="filter-subject" class="filter-select">
+                                <option value="all">Todas las asignaturas</option>
+                            </select>
+                            <button id="btn-delete-subject" class="btn-action btn-delete hidden" title="Eliminar todo de esta asignatura">🗑️</button>
+                        </div>
+                        <button id="btn-export" class="btn-export">
+                            <svg class="icon-white" viewBox="0 0 24 24"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
+                            Exportar a CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div id="active-date-filter" class="hidden">
+                    <div class="active-filter-badge">
+                        <span>📅 Filtrado por día: <span id="date-filter-text"></span></span>
+                        <button id="clear-date-filter" class="btn-clear-badge">✖</button>
+                    </div>
+                </div>
+
+                <ul id="task-list" class="task-list">
+                    </ul>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
