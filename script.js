@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
     const btnExport = document.getElementById('btn-export');
     const btnExportIcs = document.getElementById('btn-export-ics');
+    const importIcsInput = document.getElementById('import-ics-input');
     const btnLogin = document.getElementById('btn-login');
     const btnLogout = document.getElementById('btn-logout');
     const loginOverlay = document.getElementById('login-overlay');
@@ -312,6 +313,71 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     });
 
+
+    // --- IMPORTAR DESDE CALENDARIO (.ics) ---
+    importIcsInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const text = event.target.result;
+            const events = parseICS(text);
+            
+            if (events.length === 0) return alert("No se encontraron eventos válidos en el archivo.");
+            if (!confirm(`Se encontraron ${events.length} eventos. ¿Deseas importarlos a tu Organizador?`)) {
+                importIcsInput.value = ''; 
+                return;
+            }
+
+            statusDisplay.textContent = `🔄 Importando ${events.length} tareas...`;
+            statusDisplay.classList.remove('hidden');
+
+            // Subir cada evento a Firebase
+            for (const ev of events) {
+                const taskData = {
+                    name: ev.name || "Tarea Importada",
+                    subject: "Importado", // Como GCalendar no tiene asignaturas, le ponemos esta etiqueta por defecto
+                    date: ev.date || new Date().toISOString().split('T')[0],
+                    fileMaterial: "",
+                    folderMaterial: "",
+                    userId: currentUser.uid,
+                    completed: false
+                };
+                await addDoc(tasksRef, taskData);
+            }
+            
+            statusDisplay.textContent = `✅ Importación completada con éxito.`;
+            setTimeout(() => { statusDisplay.classList.add('hidden'); }, 3000);
+            importIcsInput.value = ''; // Limpiar el input
+        };
+        reader.readAsText(file);
+    });
+
+    // Función "Traductora" para leer archivos de calendario
+    function parseICS(icsText) {
+        const lines = icsText.split(/\r\n|\n|\r/);
+        let events = [];
+        let currentEvent = null;
+
+        lines.forEach(line => {
+            if (line.startsWith('BEGIN:VEVENT')) {
+                currentEvent = {};
+            } else if (line.startsWith('END:VEVENT')) {
+                if (currentEvent.name && currentEvent.date) events.push(currentEvent);
+                currentEvent = null;
+            } else if (currentEvent) {
+                if (line.startsWith('SUMMARY:')) currentEvent.name = line.substring(8).trim();
+                // Busca fechas en el formato estándar de .ics (YYYYMMDD)
+                if (line.startsWith('DTSTART')) {
+                    const match = line.match(/(\d{4})(\d{2})(\d{2})/);
+                    if (match) currentEvent.date = `${match[1]}-${match[2]}-${match[3]}`;
+                }
+            }
+        });
+        return events;
+    }
+  
     // --- RENDERIZADO Y DASHBOARD ---
     function updateDashboard() {
         const subjects = [...new Set(tasks.map(t => t.subject))];
