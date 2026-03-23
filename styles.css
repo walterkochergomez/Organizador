@@ -217,3 +217,60 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 .hidden { display: none !important; }
+/* ==========================================================
+   OVERLAY DE LOGIN (Restaurado y Refinado)
+   ========================================================== */
+.overlay { 
+    position: fixed; 
+    inset: 0; 
+    background: var(--bg); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 1000; 
+    transition: opacity 0.3s ease;
+}
+
+.login-card { 
+    text-align: center; 
+    padding: 3rem 2rem; 
+    background: var(--bg-card); 
+    border-radius: 20px; 
+    box-shadow: var(--shadow-pro-lg); 
+    width: 90%; 
+    max-width: 400px; 
+}
+
+.login-card h1 { 
+    font-size: 2rem; 
+    margin-bottom: 0.5rem; 
+}
+
+.login-card p { 
+    color: var(--text-muted); 
+    margin-bottom: 2rem; 
+    font-size: 0.95rem; 
+}
+
+.btn-google { 
+    background: var(--bg-card); 
+    color: var(--text); 
+    border: 1px solid var(--border); 
+    padding: 0.8rem 1.5rem; 
+    font-size: 1rem; 
+    font-weight: 600; 
+    border-radius: 8px; 
+    box-shadow: var(--shadow-pro-sm); 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+}
+
+.btn-google:hover { 
+    background: var(--bg); 
+    box-shadow: var(--shadow-pro-md); 
+    transform: translateY(-2px); 
+}
+
+.btn-google:active { 
+    transform: translateY(0); 
+}
