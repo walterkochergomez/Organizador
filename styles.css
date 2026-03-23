@@ -1,172 +1,193 @@
+/* ==========================================================
+   PALETA PRO MINIMALISTA Y SOPHISTICATED (No Borders)
+   ========================================================== */
 :root {
-    --bg-page: #f4f5f7;
-    --bg-sidebar: #f7f8fa;
-    --bg-card: #ffffff;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --border-color: #e5e7eb;
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
-    --success: #10b981;
+    /* Base */
+    --bg: #f9fafb; /* Limpio e inmaculado */
+    --bg-card: #ffffff; /* Blanco puro */
+    --text: #111827; /* Charcoal profundo */
+    --text-muted: #6b7280; /* Gris neutro */
+    --border: #e5e7eb; /* Solo para inputs */
+    
+    /* Acento Único Refinado */
+    --primary: #4f46e5; /* Índigo Pro */
+    --primary-dark: #4338ca;
+    --primary-light: #e0e7ff;
+    
+    /* Semánticos Suavizados */
     --danger: #ef4444;
-    --warning: #f59e0b;
-    --calendar-hover: #f9fafb;
-    --calendar-marker: #3b82f6;
-    --shadow-gentle: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --success: #10b981;
+    
+    /* Sombras Pro Ultra-Difusas (Reemplazan bordes) */
+    --shadow-pro-sm: 0 1px 3px rgba(0,0,0,0.02);
+    --shadow-pro-md: 0 10px 15px -3px rgba(0,0,0,0.03), 0 4px 6px -2px rgba(0,0,0,0.01);
+    --shadow-pro-lg: 0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.02);
 }
 
-body.dark-mode {
-    --bg-page: #1a1a2e;
-    --bg-sidebar: #16213e;
-    --bg-card: #1f2937;
-    --text-main: #f9fafb;
-    --text-muted: #a0a0a0;
-    --border-color: #374151;
-    --calendar-hover: #374151;
-    --primary: #60a5fa;
-    --calendar-marker: #60a5fa;
+/* Modo Oscuro Refinado */
+.dark-mode {
+    --bg: #111827; /* Gris azulado muy oscuro */
+    --bg-card: #1f2937; /* Gris azulado oscuro */
+    --text: #f9fafb; /* Blanco grisáceo */
+    --text-muted: #9ca3af; /* Gris claro */
+    --border: #374151; /* Gris oscuro para bordes de input */
+    --primary: #6366f1; /* Índigo más brillante */
+    --primary-dark: #818cf8;
+    --primary-light: rgba(99, 102, 241, 0.1);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; transition: background-color 0.3s, color 0.3s; }
+/* ==========================================================
+   RESETEO Y TIPOGRAFÍA MODERNA
+   ========================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; -webkit-font-smoothing: antialiased; }
 
-body { background-color: var(--bg-page); color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+body { background-color: var(--bg); color: var(--text); transition: background-color 0.2s, color 0.2s; display: flex; flex-direction: column; min-height: 100vh; line-height: 1.6; }
+body.modal-open { overflow: hidden; /* Evita scroll de fondo */ }
 
-/* Dashboard Layout */
-.app-layout { display: flex; min-height: 100vh; }
-.sidebar { width: 300px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-color); padding: 2rem; display: flex; flex-direction: column; gap: 2rem; position: fixed; height: 100vh; overflow-y: auto; }
-.main-content { flex: 1; margin-left: 300px; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; max-width: 1400px; }
-@media (max-width: 1024px) { .sidebar { width: 250px; } .main-content { margin-left: 250px; } }
-@media (max-width: 768px) { .app-layout { flex-direction: column; } .sidebar { width: 100%; height: auto; position: relative; border-bottom: 1px solid var(--border-color); } .main-content { margin-left: 0; } }
+h1, h2, h3 { font-weight: 700; letter-spacing: -0.03em; }
+h3 { font-size: 1.25rem; margin-bottom: 1rem; color: var(--text); }
 
-/* Login Overlay */
-.login-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(244, 245, 247, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; transition: opacity 0.3s; backdrop-filter: blur(5px); }
-body.dark-mode .login-overlay { background-color: rgba(26, 26, 46, 0.95); }
-.login-overlay.hidden { opacity: 0; pointer-events: none; }
-.login-card { background-color: var(--bg-card); padding: 3rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border-color); max-width: 400px; width: 90%; }
-.login-card h2 { margin-top: 1rem; color: var(--text-main); margin-bottom: 0.5rem; }
+.container { max-width: 1060px; margin: 0 auto; padding: 24px 20px 80px 20px; /* Padding extra abajo para el FAB */ flex: 1; }
 
-/* Sidebar Elements */
-.sidebar-header { display: flex; align-items: center; gap: 1rem; }
-.logo { font-size: 2.5rem; }
-.titles h1 { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
-.sub-logo { font-size: 0.85rem; color: var(--text-muted); }
-.card h3, .tools-section h3 { font-size: 1rem; font-weight: 600; color: var(--text-main); margin-bottom: 1rem; }
+/* ==========================================================
+   HEADER Y MENÚ DE ASISTENTE FLOTANTE
+   ========================================================== */
+header { background: var(--bg-card); padding: 0.75rem 0; border-bottom: 1px solid var(--border); box-shadow: var(--shadow-pro-sm); position: sticky; top: 0; z-index: 100; }
+.header-container { max-width: 1060px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+.user-info { font-weight: 600; font-size: 0.9rem; }
+.header-actions { display: flex; gap: 0.75rem; align-items: center; }
 
-/* Forms & Inputs */
-.input-group { margin-bottom: 1rem; }
-.input-group label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.25rem; }
-input, select { width: 100%; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-card); color: var(--text-main); font-size: 0.9rem; outline: none; }
-input:focus, select:focus { border-color: var(--primary); }
+/* Menú de Asistente Flotante Pro (MacOS Style) */
+.floating-ai-menu { position: fixed; top: 60px; right: 20px; background: var(--bg-card); padding: 16px; border-radius: 12px; box-shadow: var(--shadow-pro-lg); border: 1px solid var(--border); z-index: 200; width: 360px; transition: 0.2s; opacity: 1; transform: translateY(0); }
+.floating-ai-menu.hidden { display: none; opacity: 0; transform: translateY(-10px); }
+.ai-buttons-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.btn-ai { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; }
+.btn-ai:hover { background: var(--bg); border-color: var(--text-muted); }
 
-/* Buttons */
-.icon, .icon-white { width: 16px; height: 16px; margin-right: 6px; fill: currentColor; }
-.icon-white { fill: white; }
-.btn-primary, .btn-secondary, .btn-export, .btn-sidebar, .btn-icon { border: none; cursor: pointer; font-weight: 500; border-radius: 6px; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s, background-color 0.2s; }
-.btn-primary { background-color: var(--primary); color: white; width: 100%; padding: 0.75rem; }
-.btn-primary:hover { opacity: 0.9; }
-.btn-secondary { background-color: var(--text-muted); color: white; width: 100%; margin-top: 0.5rem; padding: 0.75rem; }
-.btn-export { background-color: var(--success); color: white; padding: 0.6rem 1rem; }
-.btn-sidebar { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); width: 100%; padding: 0.6rem; }
-.btn-sidebar:hover, .btn-icon:hover { background-color: var(--border-color); }
-.btn-icon { background: transparent; padding: 0.4rem; color: var(--text-main); border: 1px solid transparent; }
-.form-actions { margin-top: 1rem; }
+/* ==========================================================
+   BARRA DE HERRAMIENTAS Y GRID DE DASHBOARD (Borderless)
+   ========================================================== */
+.controls-toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; box-shadow: var(--shadow-pro-md); }
+.controls-toolbar label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-right: 0.5rem; }
+.filter-group { flex: 1; }
+.form-control-sm { max-width: 180px; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; background: var(--bg-card); color: var(--text); }
+.export-actions { display: flex; gap: 0.5rem; }
+
+/* Dashboard Grid */
+.dashboard-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+.no-border { border: none !important; box-shadow: var(--shadow-pro-md) !important; }
+
+/* Tareas Minimalistas */
+#task-list { list-style: none; }
+.task-item { background: var(--bg-card); padding: 1.25rem; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-pro-sm); border-left: 4px solid var(--primary); }
+.task-item:hover { box-shadow: var(--shadow-pro-md); }
+.task-item.completed { opacity: 0.6; text-decoration: line-through; border-left-color: var(--success); }
+.task-info strong { font-size: 0.95rem; display: block; }
+.task-info span { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+.task-material { font-size: 0.8rem; margin-top: 0.4rem; }
+.task-material a { color: var(--primary); text-decoration: none; }
+
+.task-actions { display: flex; gap: 0.25rem; }
+.btn-action { background: transparent; color: var(--text-muted); font-size: 1.1rem; padding: 0.4rem; }
+.btn-action:hover { color: var(--text); background: var(--bg); border-radius: 6px; }
+
+/* ==========================================================
+   CALENDARIO LÍQUIDO Y PURO (No Cells)
+   ========================================================= */
+.calendar-card { background: var(--bg-card); padding: 1.25rem; border-radius: 12px; }
+.calendar-header h4 { font-size: 0.95rem; }
+.calendar-header button { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.6rem; }
+
+.calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+
+.calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500; border-radius: 50%; /* Círculo Pro */ cursor: pointer; color: var(--text); border: 2px solid transparent; }
+.calendar-day:not(.empty):hover { background: var(--bg); }
+.calendar-day.today { border-color: var(--border); font-weight: 700; }
+.calendar-day.selected { background: var(--primary); color: white; border-color: var(--primary); }
+.calendar-day.selected .task-marker { background: white; }
+
+.markers-container { display: flex; gap: 2px; position: absolute; bottom: 4px; }
+.calendar-day { position: relative; } /* Para posicionar el marcador */
+.task-marker { width: 4px; height: 4px; background: var(--primary); border-radius: 50%; }
+.task-marker.done { background: var(--success); }
+
+/* ==========================================================
+   MODAL DE FORMULARIO DE TAREA (Glassmorphism)
+   ========================================================== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 1; transition: 0.3s; }
+.modal-overlay.hidden { display: none; opacity: 0; }
+.modal-content { max-width: 500px; width: 100%; border-radius: 20px; padding: 2rem; position: relative; }
+.glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important; box-shadow: var(--shadow-pro-lg) !important; }
+.dark-mode .glass { background: rgba(31, 41, 55, 0.8); }
+
+.close-modal { position: absolute; top: 1rem; right: 1rem; background: transparent; color: var(--text-muted); font-size: 1.5rem; font-weight: 700; }
+.close-modal:hover { color: var(--text); }
+
+/* Form inputs (Mantenemos por funcionalidad) */
+.form-group { margin-bottom: 0.75rem; width: 100%; max-width: 100%; overflow: hidden; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+input, select, .form-control { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text); font-size: 0.9rem; }
+input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+/* Fix DEFINITIVO forzado para iOS (Mantenemos) */
+input[type="date"] { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; -webkit-appearance: none !important; appearance: none !important; }
+
+/* Botones */
+button { cursor: pointer; border: none; font-weight: 600; transition: 0.2s; border-radius: 8px; }
+.btn-primary { background: var(--primary); color: white; padding: 0.7rem 1.5rem; width: 100%; font-size: 0.95rem; box-shadow: var(--shadow-pro-sm); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0.6rem 1.2rem; }
+.btn-secondary:hover { background: var(--bg); }
+.btn-danger { background: transparent; color: var(--danger); font-size: 0.8rem; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.4rem 0.8rem; }
+.btn-danger:hover { background: rgba(239, 68, 68, 0.05); }
+
+/* Iconos de cabecera y barra de herramientas */
+.btn-icon, .btn-icon-sm { background: transparent; color: var(--text-muted); font-size: 1.25rem; padding: 0.3rem; }
+.btn-icon-sm { font-size: 1.1rem; }
+.btn-icon:hover, .btn-icon-sm:hover { color: var(--text); transform: scale(1.05); }
+
+/* ================= =========================================
+   BOTÓN FLOTANTE (FAB) PARA TAREA (+ Minimalist)
+   ========================================================== */
+.fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; font-size: 1.75rem; font-weight: 700; box-shadow: var(--shadow-pro-lg); display: flex; align-items: center; justify-content: center; z-index: 110; transition: 0.2s; }
+.fab:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+/* --- FOOTER MINIMALISTA --- */
+footer { background: var(--bg-card); padding: 1.5rem 0; border-top: 1px solid var(--border); margin-top: auto; }
+.footer-container { max-width: 1060px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; }
+.footer-links { display: flex; gap: 1rem; align-items: center; }
+.footer-links a { text-decoration: none; color: var(--text-muted); display: flex; align-items: center; transition: color 0.2s; }
+.footer-links a:hover { color: var(--text); transform: scale(1.05); }
+.linkedin-link { color: #0077b5; }
+.portfolio-icon { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+
+/* ==========================================================
+   INTERRUPTOR ESTILO iOS (Toggle Switch) (Mantenemos)
+   ========================================================== */
+.theme-switch { position: relative; display: inline-block; width: 44px; height: 26px; }
+.theme-switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #b6b6b6; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+input:checked + .slider { background-color: #34c759; }
+input:checked + .slider:before { transform: translateX(18px); }
+
+/* --- RESPONSIVE / CELULAR --- */
+@media (max-width: 800px) {
+    .container { padding: 20px 15px 80px 15px; }
+    .dashboard-grid { grid-template-columns: 1fr; gap: 20px; }
+    .calendar-card { order: -1; } /* Calendario arriba en móvil */
+}
+
+@media (max-width: 600px) {
+    .header-container { text-align: center; }
+    .floating-ai-menu { width: calc(100% - 40px); right: 20px; }
+    .ai-buttons-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-row { grid-template-columns: 1fr; }
+    .controls-toolbar { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+    .form-control-sm { max-width: 100%; }
+    .export-actions { justify-content: space-around; }
+    .modal-content { padding: 1.5rem; }
+}
+
 .hidden { display: none !important; }
-
-/* Herramientas de Estudio */
-.tools-section { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
-.tools-grid { display: flex; flex-direction: column; gap: 0.6rem; }
-.btn-tool { display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; padding: 0.6rem 0.8rem; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: background-color 0.2s, border-color 0.2s; border: 1px solid transparent; }
-.btn-notebooklm { background-color: #e8f0fe; color: #1a73e8; border-color: #d2e3fc; }
-.btn-notebooklm:hover { background-color: #d2e3fc; }
-.btn-gemini { background-color: #f3e8fd; color: #8e24aa; border-color: #e1bee7; }
-.btn-gemini:hover { background-color: #e1bee7; }
-.btn-aistudio { background-color: #fff3e0; color: #e65100; border-color: #ffe0b2; }
-.btn-aistudio:hover { background-color: #ffe0b2; }
-body.dark-mode .btn-notebooklm { background-color: rgba(26, 115, 232, 0.15); color: #8ab4f8; border-color: rgba(138, 180, 248, 0.2); }
-body.dark-mode .btn-notebooklm:hover { background-color: rgba(26, 115, 232, 0.25); }
-body.dark-mode .btn-gemini { background-color: rgba(142, 36, 170, 0.15); color: #ce93d8; border-color: rgba(206, 147, 216, 0.2); }
-body.dark-mode .btn-gemini:hover { background-color: rgba(142, 36, 170, 0.25); }
-body.dark-mode .btn-aistudio { background-color: rgba(230, 81, 0, 0.15); color: #ffb74d; border-color: rgba(255, 183, 77, 0.2); }
-body.dark-mode .btn-aistudio:hover { background-color: rgba(230, 81, 0, 0.25); }
-
-/* Cards & Content */
-.card { background-color: var(--bg-card); border-radius: 12px; padding: 2rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-gentle); }
-.card h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
-
-/* Calendar Style */
-.calendar-header-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.calendar-controls { display: flex; align-items: center; gap: 0.5rem; }
-.calendar-controls h3 { font-size: 1rem; font-weight: 600; color: var(--text-muted); margin: 0; }
-.calendar-wrapper { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
-.calendar-grid-labels { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); padding: 0.5rem 0; }
-.calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: var(--border-color); }
-.calendar-day { background-color: var(--bg-card); min-height: 80px; padding: 0.5rem; display: flex; flex-direction: column; align-items: flex-end; font-size: 0.9rem; position: relative; cursor: pointer; }
-.calendar-day:hover { background-color: var(--calendar-hover); }
-.calendar-day.empty { background-color: var(--bg-sidebar); cursor: default; }
-.calendar-day.today { font-weight: 700; color: var(--primary); }
-.calendar-day.today::after { content: ''; width: 6px; height: 6px; background-color: var(--primary); border-radius: 50%; position: absolute; top: 8px; left: 8px; }
-.calendar-day.selected { border: 2px solid var(--primary); background-color: var(--calendar-hover); box-shadow: inset 0 0 0 2px var(--bg-card); }
-.markers-container { display: flex; gap: 3px; flex-wrap: wrap; width: 100%; margin-top: auto; }
-.task-marker { width: 8px; height: 8px; background-color: var(--calendar-marker); border-radius: 50%; }
-.task-marker.done { background-color: var(--success); }
-
-/* Task List Style */
-.list-header { margin-bottom: 1.5rem; }
-.filters-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
-.filter-subject-group { display: flex; align-items: center; gap: 0.5rem; }
-.filter-subject-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
-.filter-select { width: auto; padding: 0.4rem 0.6rem; font-size: 0.85rem; }
-.task-list { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
-.task-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: var(--bg-sidebar); border-radius: 8px; border: 1px solid transparent; }
-.task-item:hover { border-color: var(--border-color); }
-.task-item.completed { opacity: 0.7; }
-.task-item.completed strong { text-decoration: line-through; color: var(--text-muted); }
-.task-info strong { display: block; margin-bottom: 0.2rem; }
-.task-info span { font-size: 0.85rem; color: var(--text-muted); }
-.task-material { margin-top: 8px; font-size: 0.8rem; display: inline-block; background-color: var(--border-color); padding: 4px 8px; border-radius: 4px; }
-.task-material a { color: var(--primary); text-decoration: none; font-weight: 500; }
-.task-material a:hover { text-decoration: underline; }
-
-/* Action Buttons Minimalist */
-.task-actions { display: flex; gap: 0.3rem; }
-.btn-action { width: 32px; height: 32px; padding: 0; }
-.btn-complete { background-color: transparent; border: 1px solid var(--success); color: var(--success); }
-.btn-complete:hover { background-color: var(--success); color: white; }
-.btn-edit { background-color: transparent; border: 1px solid var(--warning); color: var(--warning); }
-.btn-edit:hover { background-color: var(--warning); color: white; }
-.btn-delete { background-color: transparent; border: 1px solid var(--danger); color: var(--danger); }
-.btn-delete:hover { background-color: var(--danger); color: white; }
-
-/* Filter Badge */
-.active-filter-badge { background-color: var(--primary); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
-.btn-clear-badge { background: rgba(255,255,255,0.2); border: none; color: white; cursor: pointer; font-weight: bold; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
-.btn-clear-badge:hover { background: rgba(255,255,255,0.4); }
-/* Corrección para inputs de fecha en móviles (Safari/iOS) */
-input[type="date"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    display: block;
-}
-/* Estilo para el input de archivo */
-input[type="file"]::file-selector-button {
-    background-color: var(--bg-page);
-    color: var(--text-main);
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    margin-right: 10px;
-}
-
-input[type="file"]::file-selector-button:hover {
-    background-color: var(--border-color);
-}
-
-.uploading {
-    color: var(--warning) !important;
-    font-weight: bold;
-}
