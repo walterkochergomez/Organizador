@@ -3,135 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Académico | Notion Style</title>
+    <title>UFRO Academic Organizer | Minimal</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="login-overlay" class="login-overlay">
-        <div class="login-card">
-            <span class="logo" style="font-size: 3rem;">🎓</span>
-            <h2>Mi Semestre Académico</h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Inicia sesión para gestionar tus actividades de forma privada.</p>
-            <button id="btn-login" class="btn-primary" style="font-size: 1rem; padding: 1rem;">
-                Ingresar con Google
-            </button>
+
+    <div id="login-overlay" class="overlay">
+        <div class="login-card no-border">
+            <h1>📚 Organizador</h1>
+            <p>Conecta y enfócate.</p>
+            <button id="btn-login" class="btn-google">Ingresar con Google</button>
         </div>
     </div>
 
-    <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <span class="logo">🎓</span>
-                <div class="titles">
-                    <h1>Mi Semestre Académico</h1>
-                    <span class="sub-logo" id="user-name-display">Cargando...</span>
-                </div>
+    <header>
+        <div class="header-container">
+            <div class="user-info">
+                <span id="user-name-display">Cargando...</span>
             </div>
+            <div class="header-actions">
+                <button id="ai-assistant-toggle" class="btn-icon" title="Asistente de IA">✨</button>
+                <label class="theme-switch" for="theme-toggle-input">
+                    <input type="checkbox" id="theme-toggle-input">
+                    <span class="slider round"></span>
+                </label>
+                <button id="btn-logout" class="btn-danger">Salir</button>
+            </div>
+        </div>
+    </header>
 
-            <section class="add-task-section">
-                <h3>Nueva Actividad</h3>
-                <form id="task-form">
-                    <div class="input-group">
-                        <label>Descripción</label>
-                        <input type="text" id="task-name" placeholder="Ej: Certamen de Termodinámica..." required>
-                    </div>
-                    <div class="input-group">
-                        <label>Asignatura</label>
-                        <input type="text" id="task-subject" list="subject-list" placeholder="Selecciona o escribe nueva..." autocomplete="off" required>
-                        <datalist id="subject-list">
-                            </datalist>
-                    </div>
-                    <div class="input-group">
-                        <label>Fecha Límite</label>
+    <div id="ai-assistant-menu" class="floating-ai-menu hidden">
+        <div class="ai-buttons-grid">
+            <a href="https://gemini.google.com" target="_blank" class="btn-ai">✨ Gemini</a>
+            <a href="https://notebooklm.google.com" target="_blank" class="btn-ai">📓 NotebookLM</a>
+            <a href="https://aistudio.google.com/u/0/prompts/new_chat" target="_blank" class="btn-ai">🛠️ AI Studio</a>
+            <a href="https://chatgpt.com" target="_blank" class="btn-ai">💬 ChatGPT</a>
+            <a href="https://claude.ai" target="_blank" class="btn-ai">🧠 Claude</a>
+            <a href="https://gamma.app" target="_blank" class="btn-ai">📊 Gamma</a>
+            <a href="https://chat.deepseek.com" target="_blank" class="btn-ai">🐳 DeepSeek</a>
+            <a href="https://www.perplexity.ai" target="_blank" class="btn-ai">🔎 Perplexity</a>
+        </div>
+    </div>
+
+    <main class="container">
+        
+        <section class="controls-toolbar card no-border">
+            <div class="filter-group">
+                <label for="filter-subject">Asignatura:</label>
+                <select id="filter-subject" class="form-control-sm">
+                    <option value="all">Todas</option>
+                </select>
+            </div>
+            <div class="export-actions">
+                <button id="btn-export" class="btn-icon-sm" title="Exportar a Excel (CSV)">📊</button>
+                <button id="btn-export-ics" class="btn-icon-sm" title="Sincronizar con Calendario (.ics)">📅</button>
+            </div>
+        </section>
+
+        <div class="dashboard-grid">
+            <section class="tasks-container">
+                <h3>Próximas Entregas</h3>
+                <ul id="task-list"></ul>
+            </section>
+
+            <aside class="calendar-card no-border">
+                <div class="calendar-header">
+                    <button id="prev-month">&lt;</button>
+                    <h4 id="month-year">Marzo 2026</h4>
+                    <button id="next-month">&gt;</button>
+                </div>
+                <div class="calendar-weekdays">
+                    <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                </div>
+                <div id="calendar-days" class="calendar-days liquid-grid"></div>
+            </aside>
+        </div>
+    </main>
+
+    <div id="task-modal" class="modal-overlay hidden">
+        <div class="modal-content card no-border glass">
+            <button id="close-task-modal" class="close-modal">&times;</button>
+            <h3 id="modal-title">Nueva Tarea</h3>
+            <form id="task-form">
+                <div class="form-group">
+                    <input type="text" id="task-name" placeholder="Nombre (ej: Certamen 1)" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="task-subject" list="subject-list" placeholder="Asignatura (ej: Cálculo I)" required>
+                    <datalist id="subject-list"></datalist>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <input type="date" id="task-date" required>
                     </div>
-                    <div class="input-group">
-                        <label>Material de Estudio</label>
-                            <input type="file" id="task-file" style="padding: 5px; border: none;">
-                            <small id="upload-status" style="display:block; font-size: 0.75rem; color: var(--primary); margin-top: 5px;"></small>
-                            <input type="hidden" id="task-material">
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" id="submit-btn" class="btn-primary">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                            Guardar Tarea
-                        </button>
-                        <button type="button" id="cancel-edit-btn" class="btn-secondary hidden">Cancelar Edición</button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="settings-section">
-                <button id="theme-toggle" class="btn-sidebar">🌙 Modo Oscuro</button>
-                <button id="btn-logout" class="btn-sidebar" style="color: var(--danger); margin-top: 10px;">🚪 Cerrar Sesión</button>
-            </section>
-
-            <section class="tools-section">
-                <h3>Herramientas de Estudio</h3>
-                <div class="tools-grid">
-                    <a href="https://notebooklm.google.com/" target="_blank" class="btn-tool btn-notebooklm">
-                        📓 NotebookLM
-                    </a>
-                    <a href="https://gemini.google.com/" target="_blank" class="btn-tool btn-gemini">
-                        ✨ Gemini
-                    </a>
-                    <a href="https://aistudio.google.com/u/0/prompts/new_chat" target="_blank" class="btn-tool btn-aistudio">
-                        🛠️ AI Studio
-                    </a>
-                </div>
-            </section>
-        </aside>
-
-        <main class="main-content">
-            <section class="card calendar-card">
-                <div class="calendar-header-wrapper">
-                    <h2>Calendario Profesional</h2>
-                    <div class="calendar-controls">
-                        <button id="prev-month" class="btn-icon">◀</button>
-                        <h3 id="month-year">Mes Año</h3>
-                        <button id="next-month" class="btn-icon">▶</button>
+                    <div class="form-group">
+                        <input type="file" id="task-file" class="file-input">
                     </div>
                 </div>
-                <div class="calendar-wrapper">
-                    <div class="calendar-grid-labels">
-                        <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
-                    </div>
-                    <div id="calendar-days" class="calendar-days">
-                        </div>
-                </div>
-            </section>
+                
+                <div id="upload-status" class="status-msg hidden"></div>
 
-            <section class="card tasks-card">
-                <div class="list-header">
-                    <h2>Mis Tareas</h2>
-                    <div class="filters-row">
-                        <div class="filter-subject-group">
-                            <label>Filtro:</label>
-                            <select id="filter-subject" class="filter-select">
-                                <option value="all">Todas las asignaturas</option>
-                            </select>
-                            <button id="btn-delete-subject" class="btn-action btn-delete hidden" title="Eliminar todo de esta asignatura">🗑️</button>
-                        </div>
-                        <button id="btn-export" class="btn-export">
-                            <svg class="icon-white" viewBox="0 0 24 24"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
-                            Exportar a CSV
-                        </button>
-                    </div>
+                <div class="form-actions">
+                    <button type="submit" id="submit-btn" class="btn-primary">Guardar Tarea</button>
+                    <button type="button" id="cancel-edit-btn" class="btn-secondary hidden">Cancelar Edición</button>
                 </div>
-
-                <div id="active-date-filter" class="hidden">
-                    <div class="active-filter-badge">
-                        <span>📅 Filtrado por día: <span id="date-filter-text"></span></span>
-                        <button id="clear-date-filter" class="btn-clear-badge">✖</button>
-                    </div>
-                </div>
-
-                <ul id="task-list" class="task-list">
-                    </ul>
-            </section>
-        </main>
+            </form>
+        </div>
     </div>
+
+    <button id="fab-add-task" class="fab" title="Nueva Tarea">+</button>
+
+    <footer>
+        <div class="footer-container">
+            <span>By Walter Köcher Gómez</span>
+            <div class="footer-links">
+                <a href="https://cl.linkedin.com/in/walter-j%C3%BCrgen-k%C3%B6cher-g%C3%B3mez" target="_blank" class="linkedin-link" title="LinkedIn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18" height="18" fill="currentColor"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+                </a>
+                <a href="https://walterkochergomez.github.io/" target="_blank" class="portfolio-link" title="Portafolio">
+                    <img src="image_1.png" alt="Portafolio" class="portfolio-icon">
+                </a>
+            </div>
+        </div>
+    </footer>
 
     <script type="module" src="script.js"></script>
 </body>
